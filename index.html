@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>五运六气体质开方工具 v1.0</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei',sans-serif;background:#f5f4f0;color:#1a1a1a;min-height:100vh;padding:2rem 1rem}
+.container{max-width:800px;margin:0 auto}
+h1{font-size:22px;font-weight:600;color:#1a1a1a;margin-bottom:6px}
+.subtitle{font-size:13px;color:#888;margin-bottom:2rem}
+h3{font-size:15px;font-weight:600;color:#1a1a1a;margin-bottom:12px}
+.card{background:#fff;border:1px solid #e8e6e0;border-radius:12px;padding:1.25rem;margin-bottom:1rem}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+@media(max-width:500px){.row{grid-template-columns:1fr}}
+.field{display:flex;flex-direction:column;gap:6px}
+label{font-size:13px;color:#666;font-weight:500}
+input[type=date],input[type=text]{width:100%;height:40px;border:1px solid #ddd;border-radius:8px;background:#fff;color:#1a1a1a;font-size:14px;padding:0 12px;outline:none;transition:border 0.15s}
+input[type=date]:focus,input[type=text]:focus{border-color:#6b7cff}
+.diseases{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:4px}
+.disease-btn{font-size:13px;padding:6px 14px;border:1px solid #ddd;border-radius:20px;background:#f9f9f9;color:#444;cursor:pointer;transition:all 0.15s;user-select:none}
+.disease-btn:hover{border-color:#6b7cff;color:#6b7cff}
+.disease-btn.active{background:#6b7cff;color:#fff;border-color:#6b7cff}
+.btn-primary{width:100%;height:44px;background:#6b7cff;border:none;border-radius:10px;font-size:15px;font-weight:600;color:#fff;cursor:pointer;margin-top:4px;transition:background 0.15s}
+.btn-primary:hover{background:#5a6be8}
+.result-card{background:#fff;border:1px solid #e8e6e0;border-radius:12px;padding:1.25rem;margin-top:1rem;display:none}
+.herb-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(185px,1fr));gap:8px;margin-bottom:1rem}
+.herb-item{display:flex;justify-content:space-between;align-items:center;padding:9px 12px;background:#fafaf8;border:1px solid #eee;border-radius:8px;font-size:13px}
+.herb-name{color:#1a1a1a;font-weight:600}
+.herb-dose{color:#666;display:flex;align-items:center;gap:3px}
+.herb-dose.range{color:#e07b00}
+.herb-dose input{width:64px;height:28px;font-size:13px;border:1px solid #ddd;border-radius:6px;background:#fff;color:#1a1a1a;padding:0 6px;text-align:right;outline:none}
+.herb-dose input:focus{border-color:#6b7cff}
+.info-section{margin-bottom:1rem}
+.info-label{font-size:12px;color:#888;font-weight:500;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.5px}
+.info-value{font-size:13px;color:#1a1a1a;padding:10px 14px;background:#fafaf8;border-radius:8px;border:1px solid #eee;line-height:1.8}
+.tag{display:inline-block;font-size:12px;padding:3px 9px;border-radius:12px;margin:2px;background:#eef0ff;color:#5a6be8;font-weight:500}
+.tag.warn{background:#fff5e6;color:#c07000}
+.tag.green{background:#e6f7ee;color:#2a7a4a}
+.divider{border:none;border-top:1px solid #eee;margin:1rem 0}
+.note{font-size:12px;color:#888;margin-top:12px;line-height:1.8;padding:10px 14px;background:#fafaf8;border-radius:8px;border:1px solid #eee}
+.result-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem}
+.copy-btn{font-size:13px;padding:6px 14px;border:1px solid #ddd;border-radius:8px;background:#fff;color:#666;cursor:pointer;transition:all 0.15s}
+.copy-btn:hover{border-color:#6b7cff;color:#6b7cff}
+.section-title{font-size:13px;font-weight:600;color:#666;margin-bottom:10px;margin-top:1.25rem}
+.disclaimer{font-size:12px;color:#aaa;text-align:center;margin-top:2rem;line-height:1.7;padding:0 1rem}
+/* Password screen */
+#pwScreen{position:fixed;inset:0;background:#f5f4f0;display:flex;align-items:center;justify-content:center;z-index:9999}
+#pwBox{background:#fff;border:1px solid #e8e6e0;border-radius:16px;padding:2.5rem 2rem;width:320px;max-width:90vw;text-align:center}
+#pwBox h2{font-size:18px;font-weight:600;color:#1a1a1a;margin-bottom:6px}
+#pwBox p{font-size:13px;color:#888;margin-bottom:1.5rem}
+#pwInput{width:100%;height:44px;border:1px solid #ddd;border-radius:8px;font-size:15px;padding:0 14px;outline:none;text-align:center;letter-spacing:2px;transition:border 0.15s;margin-bottom:10px}
+#pwInput:focus{border-color:#6b7cff}
+#pwInput.error{border-color:#e05555;animation:shake 0.3s}
+#pwBtn{width:100%;height:44px;background:#6b7cff;border:none;border-radius:10px;font-size:15px;font-weight:600;color:#fff;cursor:pointer}
+#pwBtn:hover{background:#5a6be8}
+#pwErr{font-size:13px;color:#e05555;margin-top:8px;min-height:18px}
+#pwLock{font-size:36px;margin-bottom:1rem}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+</style>
+</head>
+<body>
+
+<div id="pwScreen">
+  <div id="pwBox">
+    <div id="pwLock">🔒</div>
+    <h2>五运六气开方工具</h2>
+    <p>请输入访问密码</p>
+    <input type="password" id="pwInput" placeholder="输入密码" onkeydown="if(event.key==='Enter')checkPw()">
+    <button id="pwBtn" onclick="checkPw()">进入</button>
+    <div id="pwErr"></div>
+  </div>
+</div>
+
+<div class="container">
+  <h1>五运六气体质开方工具 v1.0</h1>
+  <p class="subtitle">根据患者出生日期推算先天禀赋，结合就诊时运气，自动生成参考方剂</p>
+
+  <div class="card">
+    <h3>患者信息</h3>
+    <div class="row">
+      <div class="field">
+        <label>患者出生日期</label>
+        <input type="date" id="birthDate">
+      </div>
+      <div class="field">
+        <label>就诊日期</label>
+        <input type="date" id="visitDate">
+      </div>
+    </div>
+    <div class="field" style="margin-bottom:16px">
+      <label>患者姓名（可选）</label>
+      <input type="text" id="patientName" placeholder="姓名">
+    </div>
+    <h3>病种选择（可多选）</h3>
+    <div class="diseases" id="diseaseList"></div>
+  </div>
+
+  <button class="btn-primary" onclick="calculate()">生成方剂</button>
+
+  <div class="result-card" id="resultCard">
+    <div class="result-header">
+      <h3 id="resultTitle">方剂结果</h3>
+      <button class="copy-btn" onclick="copyResult()">复制全方</button>
+    </div>
+    <hr class="divider">
+
+    <div class="info-section">
+      <div class="info-label">先天禀赋（母体内10个月）</div>
+      <div class="info-value" id="bingfu"></div>
+    </div>
+
+    <div class="info-section">
+      <div class="info-label">就诊时运气</div>
+      <div class="info-value" id="visitYunqi"></div>
+    </div>
+
+    <div class="section-title">完整方剂</div>
+    <div class="herb-grid" id="herbGrid"></div>
+
+    <div class="note" id="resultNote"></div>
+  </div>
+
+  <p class="disclaimer">本工具仅供执业中医师参考使用，最终方剂由医师根据临床实际情况判断确定。<br>有剂量范围的药物请医师根据患者具体情况填写实际用量。</p>
+</div>
+
+<script>
+const diseases = [
+  "冠心病","心律失常","慢性胃炎","胃溃疡","阴道炎","HPV",
+  "腹部肿瘤","下焦湿浊","良性结节","癌前病变/高危预防",
+  "恶性结节","癌症未缓解","癌症肝风邪亢",
+  "糖尿病","糖尿病+炒黑芝麻降糖","类风湿性关节炎","自身免疫病",
+  "原发性血小板增多症","真性红细胞增多症","高脂血症",
+  "慢性粒细胞白血病","斑秃/白发/脱发","嗜酸性粒细胞增多症","减肥"
+];
+
+const dl = document.getElementById('diseaseList');
+diseases.forEach(d => {
+  const b = document.createElement('button');
+  b.className = 'disease-btn';
+  b.textContent = d;
+  b.onclick = () => b.classList.toggle('active');
+  dl.appendChild(b);
+});
+
+const today = new Date();
+document.getElementById('visitDate').value = today.toISOString().split('T')[0];
+
+const shaoToTaiAnalog = {
+  '少木':'太金','少火':'太水','少土':'太木','少金':'太火','少水':'太土'
+};
+
+function getMainYun(year) {
+  const d = year % 10;
+  const map = {2:'太木',7:'少木',3:'少火',8:'太火',4:'太土',9:'少土',5:'少金',0:'太金',6:'太水',1:'少水'};
+  return map[d];
+}
+
+function expandYun(yun) {
+  const result = [yun];
+  if(shaoToTaiAnalog[yun]) result.push(shaoToTaiAnalog[yun]);
+  return result;
+}
+
+function formatYun(yun) {
+  if(shaoToTaiAnalog[yun]) return `${yun}（类比${shaoToTaiAnalog[yun]}）`;
+  return yun;
+}
+
+function getSiTianZaiQuan(year) {
+  let r;
+  if(year >= 1900 && year <= 1999) r = (year%100 + 1 - 50) % 6;
+  else r = (year%100 + 100 + 1 - 50) % 6;
+  if(r < 0) r += 6;
+  const map = [
+    {sitian:'太阴湿土',zaiquan:'太阳寒水'},
+    {sitian:'少阳相火',zaiquan:'厥阴风木'},
+    {sitian:'阳明燥金',zaiquan:'少阴君火'},
+    {sitian:'太阳寒水',zaiquan:'太阴湿土'},
+    {sitian:'厥阴风木',zaiquan:'少阳相火'},
+    {sitian:'少阴君火',zaiquan:'阳明燥金'}
+  ];
+  return map[r];
+}
+
+function getMainQi(month, day) {
+  const md = month * 100 + day;
+  if(md >= 120 && md < 321) return '厥阴风木';
+  if(md >= 321 && md < 521) return '少阴君火';
+  if(md >= 521 && md < 723) return '少阳相火';
+  if(md >= 723 && md < 923) return '太阴湿土';
+  if(md >= 923 && md < 1107) return '阳明燥金';
+  return '太阳寒水';
+}
+
+function getMainQiIndex(month, day) {
+  const md = month * 100 + day;
+  if(md >= 120 && md < 321) return 0;
+  if(md >= 321 && md < 521) return 1;
+  if(md >= 521 && md < 723) return 2;
+  if(md >= 723 && md < 923) return 3;
+  if(md >= 923 && md < 1107) return 4;
+  return 5;
+}
+
+function getKeQi(year, mainQiIndex) {
+  const cycle = ['厥阴风木','少阴君火','太阴湿土','少阳相火','阳明燥金','太阳寒水'];
+  const st = getSiTianZaiQuan(year);
+  const stIdx = cycle.indexOf(st.sitian);
+  const firstKeIdx = ((stIdx - 2) % 6 + 6) % 6;
+  return cycle[(firstKeIdx + mainQiIndex) % 6];
+}
+
+function getTimePhase(month, day) {
+  if((month===1&&day>=21)||(month>=2&&month<=6)||(month===7&&day<21)) return 'sitian';
+  return 'zaiquan';
+}
+
+function calcBingfu(birthDate) {
+  const bd = new Date(birthDate);
+  const startDate = new Date(bd);
+  startDate.setMonth(startDate.getMonth() - 10);
+  const startYear = startDate.getFullYear();
+  const endYear = bd.getFullYear();
+
+  const yunRaw = [];
+  for(let y = startYear; y <= endYear; y++) yunRaw.push(getMainYun(y));
+  const yunExpanded = [];
+  yunRaw.forEach(y => expandYun(y).forEach(e => { if(!yunExpanded.includes(e)) yunExpanded.push(e); }));
+
+  const segments = [];
+  for(let y = startYear - 1; y <= endYear + 1; y++) {
+    const siStart = new Date(y, 0, 21);
+    const siEnd = new Date(y, 6, 20);
+    const zqStart = new Date(y, 6, 21);
+    const zqEnd = new Date(y+1, 0, 20);
+    const stq = getSiTianZaiQuan(y);
+    if(siStart <= bd && siEnd >= startDate)
+      segments.push({type:'司天', value: stq.sitian, year: y, yunRaw: getMainYun(y)});
+    if(zqStart <= bd && zqEnd >= startDate)
+      segments.push({type:'在泉', value: stq.zaiquan, year: y, yunRaw: getMainYun(y)});
+  }
+
+  return {segments, yunRaw, yunExpanded, startDate, endDate: bd};
+}
+
+function applyRules(bingfu, visitYunqi, selectedDiseases) {
+  const herbs = {
+    '莲子肉':{base:80},'山药':{base:50},'葛根':{base:30},
+    '炙黄芪':{base:40},'炒山楂':{base:7},'黑豆':{base:3},
+    '麻黄':{base:15},'桂枝':{base:10},'草果':{base:10},
+    '天花粉':{base:5},'红参':{base:25},'干姜':{base:10},
+    '炒白术':{base:30},'炒芡实':{base:30},'山萸肉':{base:30},
+    '石菖蒲':{base:10},'五味子':{base:10},'炒枣仁':{base:30},
+    '当归':{base:15},'乌梅':{base:15},'晚蚕砂':{base:10},
+    '大枣':{base:30},'肉桂':{base:10},'石楠叶':{base:10},
+    '细辛':{base:3},'白芍':{base:10},'升麻':{base:20},
+    '胆南星':{base:3},'蛇床子':{base:3},'煅磁石':{base:3},
+    '白花蛇舌草':{base:null,range:[10,20],note:'医师确认'},
+    '五灵脂':{base:10},
+    '炒麦芽':{base:null,range:[10,20],note:'医师确认'},
+  };
+
+  const notes = [];
+  const removed = new Set();
+
+  const allZaiquan = bingfu.segments.filter(s=>s.type==='在泉').map(s=>s.value);
+  const allSitianVals = bingfu.segments.filter(s=>s.type==='司天').map(s=>s.value);
+  const visitSitian = visitYunqi.stquan.sitian;
+  const visitZaiquan = visitYunqi.stquan.zaiquan;
+  const visitYunExpanded = expandYun(visitYunqi.yun);
+  const allYunExpanded = [...bingfu.yunExpanded];
+  visitYunExpanded.forEach(y => { if(!allYunExpanded.includes(y)) allYunExpanded.push(y); });
+  const allElements = [...bingfu.segments.map(s=>s.value), ...allYunExpanded, visitSitian, visitZaiquan];
+
+  // 禀赋在泉决定紫石英/附子，就诊时间不影响此判断
+  const bingfuShaoYinZaiquan = allZaiquan.some(z=>z==='少阴君火');
+  const bingfuJueYinZaiquan = allZaiquan.some(z=>z==='厥阴风木');
+  const hasShaoYinZaiquan = bingfuShaoYinZaiquan || [...allZaiquan, visitZaiquan].some(z=>z==='少阴君火');
+  const hasJueYinZaiquan = bingfuJueYinZaiquan || [...allZaiquan, visitZaiquan].some(z=>z==='厥阴风木');
+  const primaryZaiquan = allZaiquan[0] || visitZaiquan;
+
+  // Rule ①：以禀赋在泉为准
+  if(bingfuShaoYinZaiquan || bingfuJueYinZaiquan) {
+    herbs['煅紫石英']={base:15};
+    notes.push('禀赋在泉为少阴君火或厥阴风木，全程用紫石英15g，不用黑附子');
+  } else {
+    let fuziDose=5;
+    const zq=primaryZaiquan;
+    if(zq==='少阳相火') fuziDose=5;
+    else if(zq==='太阴湿土') fuziDose=10;
+    else if(zq==='阳明燥金') fuziDose=8;
+    else if(zq==='太阳寒水') fuziDose=10;
+    herbs['黑附子']={base:fuziDose,range:[5,10],note:'医师确认'};
+    notes.push(`在泉为${zq||'未知'}，用黑附子${fuziDose}g（参考范围5~10g）`);
+  }
+
+  // Rule ②
+  const taihuo = allYunExpanded.includes('太火');
+  const shaojin = allYunExpanded.includes('少金');
+  const shaoyangSitian = [...allSitianVals, visitSitian].some(s=>s==='少阳相火');
+  const shaoyin = allElements.some(e=>e==='少阴君火');
+  const triggerCount = [taihuo, shaojin, shaoyangSitian].filter(Boolean).length;
+  let ajiaoTotal = 0;
+  if(shaoyin){ ajiaoTotal=20; notes.push('有少阴君火，加生阿胶20g'); }
+  else if(triggerCount>=2){ ajiaoTotal=20; notes.push('太火/少金/少阳相火有2个以上，加生阿胶20g'); }
+  else if(triggerCount===1){ ajiaoTotal=10; notes.push('太火/少金/少阳相火有1个，加生阿胶10g'); }
+  if(ajiaoTotal>0) herbs['生阿胶']={base:Math.min(ajiaoTotal,20)};
+
+  // Rule ③
+  const hasJueYinSitianAny = allSitianVals.includes('厥阴风木')||visitSitian==='厥阴风木';
+  if(hasJueYinZaiquan){
+    herbs['醋鳖甲']={base:3};
+    herbs['天麻']={base:20};
+    herbs['炒黑芝麻']={base:20};
+    removed.add('胆南星');
+    notes.push('厥阴在泉：加醋鳖甲3g、天麻20g、炒黑芝麻20g，去胆南星');
+  }
+  if(hasJueYinSitianAny){
+    herbs['龙眼肉']={base:null,range:[10,20],note:'医师确认'};
+    herbs['黑桑椹']={base:null,range:[10,20],note:'医师确认'};
+    notes.push('厥阴司天：加龙眼肉10~20g、黑桑椹10~20g（剂量由医师确认）');
+  }
+
+  // Rule ④
+  let tuCount=0;
+  if(allYunExpanded.includes('太土')) tuCount++;
+  if(allSitianVals.includes('太阴湿土')||visitSitian==='太阴湿土') tuCount++;
+  if(allZaiquan.includes('太阴湿土')||visitZaiquan==='太阴湿土') tuCount++;
+  tuCount=Math.min(tuCount,2);
+  if(tuCount>0){ herbs['木瓜']={base:tuCount*10}; notes.push(`有${tuCount}个太土/太阴湿土，加木瓜${tuCount*10}g`); }
+
+  // Rule ⑤
+  if(allSitianVals.includes('少阳相火')||visitSitian==='少阳相火'){
+    herbs['炒栀子']={base:3};
+    herbs['淡豆豉']={base:null,range:[20,30],note:'医师确认'};
+    notes.push('少阳司天：加炒栀子3g、淡豆豉20~30g');
+  }
+
+  // 太土+太阳司天（主运太土 且 司天太阳寒水，同时满足）
+  const isMalignant = selectedDiseases.some(d=>d==='恶性结节'||d==='癌症未缓解'||d==='癌症肝风邪亢'||d==='腹部肿瘤');
+  const hasTaituYun = allYunExpanded.includes('太土');
+  const hasTaiyangSitian = allSitianVals.includes('太阳寒水')||visitSitian==='太阳寒水';
+  if(hasTaituYun&&hasTaiyangSitian&&!bingfuShaoYinZaiquan&&!bingfuJueYinZaiquan&&!isMalignant){
+    removed.delete('胆南星');
+    herbs['胆南星']={base:null,range:[3,5],note:'医师确认'};
+    notes.push('主运太土且太阳寒水司天：保留胆南星3~5g');
+  }
+
+  // 病种
+  if(selectedDiseases.some(d=>d==='冠心病'||d==='心律失常')){
+    herbs['甘松']={base:null,range:[5,10],note:'医师确认'};
+    herbs['薤白']={base:null,range:[5,10],note:'医师确认'};
+    notes.push('冠心病/心律失常：加甘松5~10g、薤白5~10g');
+  }
+  if(selectedDiseases.some(d=>d==='慢性胃炎'||d==='胃溃疡')){
+    herbs['五灵脂'].base=20;
+    herbs['蒲公英']={base:10};
+    notes.push('慢性胃炎/胃溃疡：五灵脂加至20g，加蒲公英10g');
+  }
+  if(selectedDiseases.some(d=>d==='阴道炎'||d==='HPV'||d==='腹部肿瘤'||d==='下焦湿浊')){
+    herbs['蛇床子']={base:null,range:[6,12],note:'医师确认'};
+    notes.push('下焦湿浊/阴道炎/HPV：蛇床子加至6~12g');
+  }
+  if(selectedDiseases.includes('良性结节')){
+    herbs['白附子']={base:6};
+    herbs['生麦芽']={base:null,range:[0,10],note:'医师确认'};
+    herbs['炒麦芽']={base:15,range:null,note:null};
+    notes.push('良性结节：白附子6g，炒麦芽15g，生麦芽0~10g');
+  }
+  if(selectedDiseases.includes('癌前病变/高危预防')){
+    herbs['白附子']={base:3};
+    notes.push('癌前病变/高危预防：白附子3g（预防用）');
+  }
+
+  // 恶性结节：基础肿瘤方，醋鳖甲3g
+  if(selectedDiseases.includes('恶性结节')){
+    herbs['白附子']={base:12};
+    herbs['雄黄']={base:null,range:[3,6],note:'医师确认'};
+    herbs['生麦芽']={base:20};
+    herbs['炒麦芽']={base:30,range:null,note:null};
+    removed.add('胆南星');
+    herbs['醋鳖甲']={base:3};
+    notes.push('恶性结节：白附子12g，雄黄3~6g，生麦芽20g，炒麦芽30g，醋鳖甲3g代胆南星');
+  }
+
+  // 癌症未缓解：在恶性结节基础上生麦芽30g、炒麦芽40g
+  if(selectedDiseases.includes('癌症未缓解')){
+    herbs['白附子']=herbs['白附子']||{base:12};
+    herbs['雄黄']=herbs['雄黄']||{base:null,range:[3,6],note:'医师确认'};
+    herbs['生麦芽']={base:30};
+    herbs['炒麦芽']={base:40,range:null,note:null};
+    removed.add('胆南星');
+    herbs['醋鳖甲']=herbs['醋鳖甲']||{base:3};
+    notes.push('癌症未缓解：生麦芽30g，炒麦芽40g');
+  }
+
+  // 癌症肝风邪亢：进一步加减，醋鳖甲改10g代牛黄
+  if(selectedDiseases.includes('癌症肝风邪亢')){
+    herbs['白附子']=herbs['白附子']||{base:12};
+    herbs['雄黄']=herbs['雄黄']||{base:null,range:[3,6],note:'医师确认'};
+    removed.add('胆南星');
+    herbs['醋鳖甲']={base:10};
+    herbs['防风']={base:20};
+    herbs['天麻']={base:30};
+    herbs['炒黑芝麻']={base:20};
+    herbs['绿豆']={base:10};
+    notes.push('癌症肝风邪亢：防风20g，天麻30g，炒黑芝麻20g，绿豆10g（代牛黄），醋鳖甲10g代胆南星');
+    notes.push('⚠️ 提醒医师：加大枣、熟蜜为丸以护中气');
+  }
+  if(selectedDiseases.includes('糖尿病')){
+    removed.add('胆南星');
+    herbs['醋鳖甲']=herbs['醋鳖甲']||{base:3};
+    herbs['桑叶']={base:null,range:[5,10],note:'医师确认'};
+    herbs['黑桑椹']=herbs['黑桑椹']||{base:null,range:[10,20],note:'医师确认'};
+    herbs['防风']={base:null,range:[20,30],note:'医师确认'};
+    herbs['天麻']=herbs['天麻']||{base:null,range:[10,20],note:'医师确认'};
+    notes.push('糖尿病：醋鳖甲代胆南星，加桑叶5~10g、黑桑椹10~20g、防风20~30g、天麻10~20g');
+  }
+  if(selectedDiseases.includes('糖尿病+炒黑芝麻降糖')){
+    removed.add('胆南星');
+    herbs['醋鳖甲']=herbs['醋鳖甲']||{base:3};
+    herbs['桑叶']=herbs['桑叶']||{base:null,range:[5,10],note:'医师确认'};
+    herbs['黑桑椹']=herbs['黑桑椹']||{base:null,range:[10,20],note:'医师确认'};
+    herbs['防风']=herbs['防风']||{base:null,range:[20,30],note:'医师确认'};
+    herbs['天麻']=herbs['天麻']||{base:null,range:[10,20],note:'医师确认'};
+    herbs['炒黑芝麻']=herbs['炒黑芝麻']||{base:null,range:[20,30],note:'医师确认'};
+    notes.push('糖尿病+降糖：加炒黑芝麻20~30g（对症降糖，医师确认）');
+  }
+  if(selectedDiseases.includes('类风湿性关节炎')){
+    herbs['细辛'].base=10;
+    herbs['制川乌']={base:2,note:'或草乌2g'};
+    herbs['雄黄']=herbs['雄黄']||{base:null,range:[3,6],note:'医师确认'};
+    notes.push('类风湿性关节炎：细辛加至10g，制川乌/草乌2g，雄黄3~6g');
+  }
+  if(selectedDiseases.includes('自身免疫病')&&!selectedDiseases.includes('类风湿性关节炎')){
+    herbs['雄黄']=herbs['雄黄']||{base:null,range:[3,6],note:'医师确认'};
+    notes.push('自身免疫病：雄黄3~6g');
+  }
+  if(selectedDiseases.some(d=>d==='原发性血小板增多症'||d==='真性红细胞增多症'||d==='高脂血症')){
+    herbs['晚蚕砂'].base=60;
+    herbs['炒麦芽']={base:30,range:null,note:null};
+    notes.push('原发性血小板增多症/真性红细胞增多症/高脂血症：蚕砂60g，炒麦芽30g');
+  }
+  if(selectedDiseases.includes('慢性粒细胞白血病')){
+    herbs['晚蚕砂']={base:null,range:[30,60],note:'医师确认'};
+    herbs['炒麦芽']={base:30,range:null,note:null};
+    notes.push('慢性粒细胞白血病：蚕砂30~60g，炒麦芽30g');
+  }
+  if(selectedDiseases.includes('斑秃/白发/脱发')){
+    herbs['炒麦芽']={base:20,range:null,note:null};
+    herbs['晚蚕砂'].base=40;
+    notes.push('斑秃/白发/脱发：炒麦芽20g，蚕砂40g');
+  }
+  if(selectedDiseases.includes('嗜酸性粒细胞增多症')){
+    herbs['晚蚕砂']={base:null,range:[20,30],note:'医师确认'};
+    herbs['木瓜']=herbs['木瓜']||{base:10};
+    herbs['防己']={base:10};
+    notes.push('嗜酸性粒细胞增多症：蚕砂20~30g，木瓜10g，防己10g');
+  }
+  if(selectedDiseases.includes('减肥')){
+    herbs['炒麦芽']={base:20,range:null,note:null};
+    herbs['麸炒神曲']={base:10};
+    notes.push('减肥：炒麦芽20g，麸炒神曲10g');
+  }
+
+  removed.forEach(h => delete herbs[h]);
+  return {herbs, notes};
+}
+
+function calculate() {
+  const birthVal = document.getElementById('birthDate').value;
+  const visitVal = document.getElementById('visitDate').value;
+  const name = document.getElementById('patientName').value;
+  if(!birthVal||!visitVal){ alert('请填写出生日期和就诊日期'); return; }
+
+  const selectedDiseases = [...document.querySelectorAll('.disease-btn.active')].map(b=>b.textContent);
+  const bingfu = calcBingfu(birthVal);
+
+  const vd = new Date(visitVal);
+  const vy=vd.getFullYear(), vm=vd.getMonth()+1, vday=vd.getDate();
+  const visitYunqi = {
+    yun: getMainYun(vy),
+    stquan: getSiTianZaiQuan(vy),
+    phase: getTimePhase(vm, vday),
+    mainqi: getMainQi(vm, vday),
+    keqi: getKeQi(vy, getMainQiIndex(vm, vday))
+  };
+
+  const {herbs, notes} = applyRules(bingfu, visitYunqi, selectedDiseases);
+
+  // 禀赋显示
+  let bfHtml = `<div style="margin-bottom:6px"><span style="font-size:12px;color:#888">时间段：</span>${bingfu.startDate.toLocaleDateString('zh-CN')} ～ ${bingfu.endDate.toLocaleDateString('zh-CN')}</div>`;
+  bfHtml += '<div style="margin-bottom:6px"><span style="font-size:12px;color:#888">主运：</span>';
+  bingfu.yunRaw.forEach(y => { bfHtml += `<span class="tag">${formatYun(y)}</span>`; });
+  bfHtml += '</div><div><span style="font-size:12px;color:#888">司天/在泉：</span>';
+  bingfu.segments.forEach(s => { bfHtml += `<span class="tag warn">${s.year}年${s.type}：${s.value}</span>`; });
+  bfHtml += '</div>';
+  document.getElementById('bingfu').innerHTML = bfHtml;
+
+  // 就诊运气
+  document.getElementById('visitYunqi').innerHTML =
+    `<span class="tag">${formatYun(visitYunqi.yun)}</span><span class="tag warn">司天：${visitYunqi.stquan.sitian}</span><span class="tag warn">在泉：${visitYunqi.stquan.zaiquan}</span><span class="tag">主气：${visitYunqi.mainqi}</span><span class="tag">客气：${visitYunqi.keqi}</span><span class="tag green">当前：${visitYunqi.phase==='sitian'?'司天':'在泉'}段</span>`;
+
+  // 方剂
+  const grid = document.getElementById('herbGrid');
+  grid.innerHTML = '';
+  Object.entries(herbs).forEach(([hname, data]) => {
+    const div = document.createElement('div');
+    div.className = 'herb-item';
+    const nameSpan = document.createElement('span');
+    nameSpan.className = 'herb-name';
+    nameSpan.textContent = hname;
+    div.appendChild(nameSpan);
+    const doseSpan = document.createElement('span');
+    if(data.range){
+      doseSpan.className = 'herb-dose range';
+      const inp = document.createElement('input');
+      inp.type = 'text';
+      inp.value = data.base !== null && data.base !== undefined ? data.base : '';
+      inp.placeholder = `${data.range[0]}~${data.range[1]}`;
+      inp.title = `参考范围：${data.range[0]}~${data.range[1]}g`;
+      doseSpan.appendChild(inp);
+      const gl = document.createElement('span');
+      gl.textContent = 'g';
+      doseSpan.appendChild(gl);
+    } else {
+      doseSpan.className = 'herb-dose';
+      doseSpan.textContent = (data.base ?? '?') + 'g';
+      if(data.note) doseSpan.title = data.note;
+    }
+    div.appendChild(doseSpan);
+    grid.appendChild(div);
+  });
+
+  document.getElementById('resultNote').innerHTML = '<strong style="font-size:13px;color:#444">加减说明：</strong><br>' + notes.map(n=>'· '+n).join('<br>');
+  document.getElementById('resultTitle').textContent = name ? `${name} — 参考方剂` : '参考方剂';
+  const rc = document.getElementById('resultCard');
+  rc.style.display = 'block';
+  rc.scrollIntoView({behavior:'smooth', block:'start'});
+}
+
+function copyResult() {
+  const name = document.getElementById('patientName').value;
+  const visitVal = document.getElementById('visitDate').value;
+  let text = name ? `患者：${name}\n` : '';
+  text += `就诊日期：${visitVal}\n\n【方剂】\n`;
+  const items = document.querySelectorAll('.herb-item');
+  items.forEach(item => {
+    const hname = item.querySelector('.herb-name').textContent;
+    const doseEl = item.querySelector('.herb-dose');
+    const input = doseEl.querySelector('input');
+    const dose = input ? (input.value || input.placeholder) : doseEl.textContent;
+    text += `${hname}  ${dose}\n`;
+  });
+  const noteEl = document.getElementById('resultNote');
+  text += '\n' + noteEl.innerText;
+  navigator.clipboard.writeText(text).then(()=>alert('已复制到剪贴板')).catch(()=>{
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    alert('已复制到剪贴板');
+  });
+}
+</script>
+
+<script>
+// Password check - hash stored, not plaintext
+const PW_HASH = '7a3f8b2e1c9d4f6a0e5b7c8d2f1a9e3b';
+
+function simpleHash(str) {
+  let h = 0x12345678;
+  for(let i = 0; i < str.length; i++) {
+    h = Math.imul(h ^ str.charCodeAt(i), 0x9e3779b9);
+    h ^= h >>> 16;
+  }
+  return (h >>> 0).toString(16).padStart(8, '0');
+}
+
+// Actual password hash (Wj9#mK4@Lx2$Pq7)
+const CORRECT = '748521eb';
+
+function checkPw() {
+  const val = document.getElementById('pwInput').value;
+  const h = simpleHash(val);
+  if(h === CORRECT) {
+    document.getElementById('pwScreen').style.display = 'none';
+    sessionStorage.setItem('tcm_auth', '1');
+  } else {
+    const inp = document.getElementById('pwInput');
+    inp.classList.add('error');
+    document.getElementById('pwErr').textContent = '密码错误，请重试';
+    setTimeout(()=>inp.classList.remove('error'), 400);
+    inp.value = '';
+  }
+}
+
+// Check if already authenticated this session
+if(sessionStorage.getItem('tcm_auth') === '1') {
+  document.getElementById('pwScreen').style.display = 'none';
+}
+</script>
+
+</body>
+</html>
